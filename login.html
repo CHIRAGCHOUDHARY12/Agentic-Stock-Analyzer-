@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StockAI — Sign In</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',sans-serif;background:#0a0a0a;color:#e4e4e4;min-height:100vh;display:flex;align-items:center;justify-content:center;}
+    .login-bg{position:fixed;inset:0;background:radial-gradient(ellipse at 30% 40%,rgba(0,120,212,.12) 0%,transparent 60%),radial-gradient(ellipse at 70% 70%,rgba(16,185,129,.08) 0%,transparent 60%);pointer-events:none;}
+    .card{background:#141414;border:1px solid #2a2a2a;border-radius:20px;padding:40px 36px;width:100%;max-width:400px;position:relative;z-index:1;box-shadow:0 24px 64px rgba(0,0,0,.6);}
+    .logo{display:flex;align-items:center;gap:10px;margin-bottom:32px;justify-content:center;}
+    .logo-icon{font-size:28px;}
+    .logo-name{font-size:24px;font-weight:800;background:linear-gradient(135deg,#0078d4,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    h2{font-size:20px;font-weight:700;margin-bottom:6px;text-align:center;}
+    .sub{font-size:13px;color:#888;text-align:center;margin-bottom:28px;}
+    .field{margin-bottom:18px;}
+    label{display:block;font-size:12px;font-weight:600;color:#999;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+    input{width:100%;padding:12px 14px;background:#1e1e1e;border:1px solid #333;border-radius:10px;color:#e4e4e4;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s;}
+    input:focus{border-color:#0078d4;}
+    .btn{width:100%;padding:13px;background:linear-gradient(135deg,#0078d4,#005a9e);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;transition:opacity .2s;font-family:inherit;}
+    .btn:hover{opacity:.9;}
+    .err{color:#ef4444;font-size:13px;margin-top:10px;text-align:center;min-height:20px;}
+    .hint{font-size:12px;color:#555;text-align:center;margin-top:16px;}
+  </style>
+</head>
+<body>
+<div class="login-bg"></div>
+<div class="card">
+  <div class="logo"><span class="logo-icon">📊</span><span class="logo-name">StockAI</span></div>
+  <h2>Welcome Back</h2>
+  <p class="sub">Sign in to access your market dashboard</p>
+  <div class="field"><label>Username</label><input type="text" id="uname" placeholder="Enter username" autocomplete="username"></div>
+  <div class="field"><label>Password</label><input type="password" id="pass" placeholder="Enter password" autocomplete="current-password" onkeypress="if(event.key==='Enter')doLogin()"></div>
+  <button class="btn" onclick="doLogin()">Sign In →</button>
+  <div class="err" id="err"></div>
+  <p class="hint">Demo: username <strong style="color:#888">data science</strong> · password <strong style="color:#888">batla</strong></p>
+</div>
+<script>
+  // If already logged in, redirect immediately
+  if(localStorage.getItem('sa_authed') === '1') location.replace('/');
+  function doLogin(){
+    const u = document.getElementById('uname').value.trim();
+    const p = document.getElementById('pass').value.trim();
+    const err = document.getElementById('err');
+    if(!u||!p){err.textContent='Please fill in both fields.';return;}
+    if(u.toLowerCase()==='data science' && p==='batla'){
+      localStorage.setItem('sa_authed','1');
+      localStorage.setItem('currentUser', JSON.stringify({username:'Data Science',email:'ds@stockai.com',token:'tok_demo'}));
+      location.replace('/');
+    } else {
+      err.textContent='Invalid username or password.';
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agentic Stock Market Analyzer — AI-Powered Market Intelligence</title>
+  <meta name="description" content="Advanced AI-powered stock market analyzer for Indian and US markets. Real-time analysis, charts, financials, and insights.">
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ========== TOP NAVIGATION ========== -->
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <div class="nav-logo">
+      <span class="logo-icon-sm">📊</span>
+      <span class="logo-name">StockAI</span>
+    </div>
+    <div class="nav-links">
+      <a href="#" class="nav-link" onclick="navDiscover()">Discover</a>
+      <a href="#" class="nav-link" onclick="navMoney()">Money</a>
+      <a href="#" class="nav-link active" id="navWatchlist" onclick="navMyWatchlist()">My Watchlist</a>
+      <a href="#" class="nav-link" onclick="navMarkets()">Markets</a>
+      <a href="#" class="nav-link" onclick="navHeadlines()">Headlines</a>
+      <a href="#" class="nav-link" onclick="showCompareModal()">Compare</a>
+    </div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-user" id="navUser" onclick="toggleUserMenu()">
+      <span class="user-avatar" id="userAvatar">👤</span>
+      <span class="user-name" id="userName">Sign In</span>
+    </div>
+    <button onclick="doLogout()" style="background:none;border:1px solid #333;color:#888;border-radius:8px;padding:4px 12px;font-size:12px;cursor:pointer;margin-left:8px;">Logout</button>
+  </div>
+</nav>
+
+<!-- ========== TICKER TAPE ========== -->
+<div class="ticker-tape" id="tickerTape">
+  <div class="ticker-label">Popular</div>
+  <div class="ticker-scroll" id="tickerScroll"></div>
+</div>
+
+<!-- ========== MAIN 3-COLUMN LAYOUT ========== -->
+<div class="app-layout">
+
+  <!-- LEFT COLUMN: Watchlist Sidebar -->
+  <aside class="watchlist-sidebar" id="watchlistSidebar">
+    <div class="wl-header">
+      <div class="wl-title-row">
+        <span>My watchlist</span>
+        <button class="wl-manage-btn" onclick="toggleWatchlistManage()">Manage ⚙️</button>
+      </div>
+    </div>
+
+    <div class="wl-cta" id="wlCTA">
+      <div class="wl-cta-icon">📈</div>
+      <h4>BEGIN YOUR INVESTING JOURNEY</h4>
+      <p>Track and monitor your investments — all in one place. Click on the ⊕ icon to add stock to your watchlist.</p>
+    </div>
+
+    <div class="wl-section">
+      <h4 class="wl-section-title">Suggested for you</h4>
+      <div class="wl-stock-list" id="suggestedStocks"></div>
+    </div>
+  </aside>
+
+  <!-- CENTER COLUMN: Main Content -->
+  <main class="main-content" id="mainContent">
+
+    <!-- Stock Header Bar (shown when stock selected) -->
+    <div class="stock-header-bar" id="stockHeaderBar" style="display:none;">
+      <div class="shb-left">
+        <span class="shb-exchange" id="shbExchange"></span>
+        <h2 class="shb-name" id="shbName"></h2>
+        <span class="shb-price" id="shbPrice"></span>
+        <span class="shb-change" id="shbChange"></span>
+      </div>
+      <div class="shb-right">
+        <button class="shb-btn shb-watchlist" onclick="toggleCurrentWatchlist()">+ Watchlist</button>
+        <button class="shb-btn" onclick="showCompareModal()">⇄ Compare</button>
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tab-nav" id="tabNav" style="display:none;">
+      <button class="tab-btn active" data-tab="summary" onclick="switchTab('summary')">Summary</button>
+      <button class="tab-btn" data-tab="financials" onclick="switchTab('financials')">Financials</button>
+      <button class="tab-btn" data-tab="analysis" onclick="switchTab('analysis')">Analysis</button>
+      <button class="tab-btn" data-tab="earnings" onclick="switchTab('earnings')">Earnings</button>
+      <button class="tab-btn" data-tab="company" onclick="switchTab('company')">Company</button>
+    </div>
+
+    <!-- Tab Content Panels -->
+    <div class="tab-content" id="tabContent">
+
+      <!-- HERO / WELCOME (default view) -->
+      <div class="tab-panel active" id="panel-welcome">
+        <div class="hero-section">
+          <h1 class="hero-title">Agentic Stock Market Analyzer</h1>
+          <p class="hero-subtitle">AI-Powered Market Intelligence • India & US Markets • 100+ Stocks</p>
+          <div class="search-hero">
+            <div class="search-box-hero">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="heroSearch" placeholder="Search stocks, ETFs, & more..." oninput="onHeroSearch(this.value)" onkeypress="if(event.key==='Enter')selectFirstResult()">
+              <div class="search-results-dropdown" id="heroSearchResults"></div>
+            </div>
+          </div>
+          <div class="hero-actions">
+            <button class="hero-btn primary" onclick="showCompareModal()">
+              <span>⚡</span> Compare Stocks
+            </button>
+            <button class="hero-btn secondary" onclick="showPresetModal()">
+              <span>🎯</span> Popular Comparisons
+            </button>
+          </div>
+          <div class="hero-quick-picks">
+            <h3>Trending Stocks</h3>
+            <div class="quick-picks-grid" id="quickPicksGrid"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUMMARY TAB -->
+      <div class="tab-panel" id="panel-summary">
+        <div class="summary-grid">
+          <div class="summary-main">
+            <!-- Chart -->
+            <div class="chart-card">
+              <div class="chart-range-btns" id="chartRangeBtns">
+                <button class="range-btn active" data-range="1D" onclick="loadChart('1D')">1D</button>
+                <button class="range-btn" data-range="5D" onclick="loadChart('5D')">5D</button>
+                <button class="range-btn" data-range="1M" onclick="loadChart('1M')">1M</button>
+                <button class="range-btn" data-range="3M" onclick="loadChart('3M')">3M</button>
+                <button class="range-btn" data-range="1Y" onclick="loadChart('1Y')">1Y</button>
+                <button class="range-btn" data-range="5Y" onclick="loadChart('5Y')">5Y</button>
+                <button class="range-btn" data-range="MAX" onclick="loadChart('MAX')">Max</button>
+              </div>
+              <canvas id="priceChart" height="160"></canvas>
+            </div>
+
+            <!-- Quick Compare -->
+            <div class="section-card" id="quickCompareSection">
+              <h3>Quick Compare</h3>
+              <div class="peer-cards" id="peerCards"></div>
+            </div>
+
+            <!-- Key Stats -->
+            <div class="key-stats-grid" id="keyStatsGrid"></div>
+
+            <!-- AI Insights -->
+            <div class="section-card" id="aiInsightsSection">
+              <h3>AI Insights</h3>
+              <div class="insights-layout">
+                <div class="insights-list" id="insightsList"></div>
+                <div class="radar-chart-container">
+                  <canvas id="radarChart" width="280" height="280"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Summary Right Sidebar -->
+          <div class="summary-sidebar">
+            <div class="sidebar-card" id="analystCard"></div>
+            <div class="sidebar-card" id="earningsPreviewCard"></div>
+            <div class="sidebar-card" id="financialsPreviewCard"></div>
+            <div class="sidebar-card" id="tradingCard"></div>
+            <div class="sidebar-card" id="profitabilityCard"></div>
+            <div class="sidebar-card" id="companyPreviewCard"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FINANCIALS TAB -->
+      <div class="tab-panel" id="panel-financials">
+        <div class="financials-content" id="financialsContent"></div>
+      </div>
+
+      <!-- ANALYSIS TAB -->
+      <div class="tab-panel" id="panel-analysis">
+        <div class="analysis-content" id="analysisContent"></div>
+      </div>
+
+      <!-- EARNINGS TAB -->
+      <div class="tab-panel" id="panel-earnings">
+        <div class="earnings-content" id="earningsContent"></div>
+      </div>
+
+      <!-- COMPANY TAB -->
+      <div class="tab-panel" id="panel-company">
+        <div class="company-content" id="companyContent"></div>
+      </div>
+
+    </div>
+
+    <!-- Comparison Section (legacy support) -->
+    <div class="comparison-section" id="comparisonSection" style="display:none;">
+      <div class="section-header">
+        <h2><span>📊</span> Stock Comparison</h2>
+        <button class="action-btn" onclick="exportToPDF()">📄 Export PDF</button>
+      </div>
+      <div id="stockCardsContainer"></div>
+      <div id="comparisonDetails"></div>
+      <div id="comparisonAnalysis"></div>
+    </div>
+  </main>
+
+  <!-- RIGHT COLUMN: Search & Widgets -->
+  <aside class="right-sidebar" id="rightSidebar">
+    <div class="rs-search">
+      <div class="search-box">
+        <input type="text" id="sidebarSearch" placeholder="Search stocks, ETFs, & more" oninput="onSidebarSearch(this.value)">
+        <span class="search-icon-btn">🔍</span>
+      </div>
+      <div class="search-results" id="sidebarSearchResults"></div>
+    </div>
+
+    <div class="rs-widget" id="marketsWidget">
+      <h4>📊 Markets</h4>
+      <div class="widget-list" id="marketsList"></div>
+    </div>
+
+    <div class="rs-widget" id="peopleAlsoWatch">
+      <h4>👀 People Also Watch</h4>
+      <div class="widget-list" id="alsoWatchList"></div>
+    </div>
+  </aside>
+</div>
+
+<!-- ========== CHATBOT ========== -->
+<div class="chatbot-bubble" id="chatBubble" onclick="toggleChatbot()">
+  <span>💬</span>
+</div>
+<div class="chatbot-window" id="chatWindow" style="display:none;">
+  <div class="chat-header">
+    <span>🤖 Stock Assistant</span>
+    <button onclick="toggleChatbot()">✕</button>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="chat-msg bot">Hi! I'm your stock market assistant. Ask me anything about stocks! 📈</div>
+  </div>
+  <div class="chat-input-area">
+    <input type="text" id="chatBotInput" placeholder="Ask me anything..." onkeypress="if(event.key==='Enter')sendChatMessage()">
+    <button onclick="sendChatMessage()">➤</button>
+  </div>
+</div>
+
+<!-- ========== COMPARE MODAL ========== -->
+<div class="modal" id="compareModal">
+  <div class="modal-backdrop" onclick="closeCompareModal()"></div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>⚡ Compare Stocks</h2>
+      <button class="close-btn" onclick="closeCompareModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="input-group">
+        <label>📈 First Stock</label>
+        <input type="text" id="stock1Input" placeholder="e.g., RELIANCE, AAPL" value="RELIANCE">
+      </div>
+      <div class="vs-divider"><span>VS</span></div>
+      <div class="input-group">
+        <label>📉 Second Stock</label>
+        <input type="text" id="stock2Input" placeholder="e.g., TCS, MSFT" value="TCS">
+      </div>
+      <button class="modal-btn" onclick="compareStocks()">Compare Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PRESET MODAL ========== -->
+<div class="modal" id="presetModal">
+  <div class="modal-backdrop" onclick="closePresetModal()"></div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>🎯 Popular Comparisons</h2>
+      <button class="close-btn" onclick="closePresetModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="preset-grid">
+        <button class="preset-item" onclick="comparePreset('RELIANCE','TCS')"><div class="preset-title">Reliance vs TCS</div><div class="preset-desc">Industrial vs IT</div></button>
+        <button class="preset-item" onclick="comparePreset('HDFCBANK','ICICIBANK')"><div class="preset-title">HDFC vs ICICI</div><div class="preset-desc">Banking Rivals</div></button>
+        <button class="preset-item" onclick="comparePreset('AAPL','MSFT')"><div class="preset-title">Apple vs Microsoft</div><div class="preset-desc">Tech Titans</div></button>
+        <button class="preset-item" onclick="comparePreset('INFY','WIPRO')"><div class="preset-title">Infosys vs Wipro</div><div class="preset-desc">IT Services</div></button>
+        <button class="preset-item" onclick="comparePreset('NVDA','AMD')"><div class="preset-title">NVIDIA vs AMD</div><div class="preset-desc">Chip Wars</div></button>
+        <button class="preset-item" onclick="comparePreset('TATAMOTORS','MARUTI')"><div class="preset-title">Tata vs Maruti</div><div class="preset-desc">Auto Battle</div></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== LOGIN MODAL ========== -->
+<div class="modal" id="loginModal">
+  <div class="modal-backdrop" onclick="closeLoginModal()"></div>
+  <div class="modal-content login-modal-content">
+    <div class="modal-header">
+      <h2 id="authTitle">🔐 Sign In</h2>
+      <button class="close-btn" onclick="closeLoginModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="loginForm">
+        <div class="input-group"><label>Email</label><input type="email" id="loginEmail" placeholder="your@email.com"></div>
+        <div class="input-group"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••"></div>
+        <button class="modal-btn" onclick="doLogin()">Sign In</button>
+        <p class="auth-switch">Don't have an account? <a href="#" onclick="showSignup()">Sign Up</a></p>
+      </div>
+      <div id="signupForm" style="display:none;">
+        <div class="input-group"><label>Username</label><input type="text" id="signupName" placeholder="Your name"></div>
+        <div class="input-group"><label>Email</label><input type="email" id="signupEmail" placeholder="your@email.com"></div>
+        <div class="input-group"><label>Password</label><input type="password" id="signupPassword" placeholder="••••••••"></div>
+        <button class="modal-btn" onclick="doSignup()">Create Account</button>
+        <p class="auth-switch">Already have an account? <a href="#" onclick="showLogin()">Sign In</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-content">
+    <div class="spinner"></div>
+    <p>Loading data...</p>
+  </div>
+</div>
+
+<script>
+  // Auth gate — redirect to login if not authenticated
+  if(localStorage.getItem('sa_authed') !== '1') { location.replace('/login'); }
+</script>
+<script src="app.js"></script>
+</body>
+</html>
